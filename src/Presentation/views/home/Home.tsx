@@ -1,9 +1,16 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TextInput, Button, ToastAndroid, Platform, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, TextInput, Button, ToastAndroid, Platform, Alert, TouchableOpacity } from 'react-native';
 import { RoundedButton } from "../../Components/RoundedButton";
 import { COLORS } from '../../theme/AppTheme';
 
+//importar os elementos de navegação
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../../../../App";
+
 export const HomeScreen = () => {
+
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
     const testOS = () => {
         if (Platform.OS === 'android') {
@@ -77,7 +84,12 @@ export const HomeScreen = () => {
                 {/* Texto de Registro */}
                 <View style={styles.frmRegistre}>
                     <Text>Crie sua conta!</Text>
-                    <Text style={styles.txtRegistre}> Registre-se </Text>
+
+                    <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
+                        <Text style={styles.txtRegistre}> Registre-se </Text>
+                    </TouchableOpacity>
+
+                    
                 </View>
             </View>
         </View>
@@ -138,6 +150,7 @@ const styles = StyleSheet.create({
     frmInput: {
         flexDirection: 'row',
         marginTop: 30,
+        borderBottomColor: '#CCC'
     },
 
     frmIco: {
