@@ -1,29 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, TextInput, Button, ToastAndroid, Platform, Alert, TouchableOpacity } from 'react-native';
+
+//Componentes
 import { RoundedButton } from "../../Components/RoundedButton";
+import { CustomTextInput } from "../../Components/CustomTextInput";
 import { COLORS } from '../../theme/AppTheme';
 
-//importar os elementos de navegação
+//ViewModel
+import HomeViewModel from "./ViewModel";
+
+
+//importação dos elementos de navegação
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../../../../App";
+import { RootStackParameList } from '../../../../App';
+
+
+
 
 export const HomeScreen = () => {
+    const navigation = useNavigation<StackNavigationProp<RootStackParameList>>();
 
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const { onChange, userEmail, userPassword, login } = HomeViewModel();
+
 
     const testOS = () => {
         if (Platform.OS === 'android') {
-            // Android: mostra o Toast nativo
-            ToastAndroid.show("Teste de Login!", ToastAndroid.SHORT);
+            ToastAndroid.show("Login realizado com sucesso!", ToastAndroid.SHORT);
         } else if (Platform.OS === 'web') {
-            // Navegador: usa o alert do JS clássico
-            alert("Teste de Login!");
+            alert('Teste de Login! - WEB');
         } else {
-            // iOS: usa o Alert nativo do iPhone
-            Alert.alert("Teste de Login!");
+            Alert.alert('Aviso', 'Teste de Login! - iPhone');
         }
-    }
+    };
 
     return (
         <View style={styles.container}>
@@ -44,58 +53,49 @@ export const HomeScreen = () => {
 
             {/* Formulário Branco */}
             <View style={styles.frm}>
-                <Text style={styles.frmTitle}>Entrar</Text>
+                <CustomTextInput
+                    image={require('../../../../assets/img/user.png')}
+                    placeholder="Digite seu Email / Usuário"
+                    keyboardType="email-address"
+                    secureTextEntry={false}
+                    property="userEmail"
+                    onChangeText={onChange}
+                    value={userEmail}
+                />
 
-                {/* Input de Usuário/Email */}
-                <View style={styles.frmInput}>
-                    <Image
-                        source={require('../../../../assets/img/user.png')}
-                        style={styles.frmIco}
-                    />
-                    <TextInput
-                        placeholder="Digite seu Email / Usuário..."
-                        keyboardType="email-address"
-                        style={styles.txtInput}
-                    />
-                </View>
-
-                {/* CORREÇÃO AQUI: Mudado de 'styles.frm' para 'styles.frmInput' */}
-                <View style={styles.frmInput}>
-                    <Image
-                        source={require('../../../../assets/img/password.png')}
-                        style={styles.frmIco}
-                    />
-                    <TextInput
-                        placeholder="Digite sua senha..."
+                <View>
+                    <CustomTextInput
+                        image={require('../../../../assets/img/user.png')}
+                        placeholder="Digite a senha"
                         keyboardType="default"
                         secureTextEntry={true}
-                        style={styles.txtInput}
+                        property="userPassword"
+                        onChangeText={onChange}
+                        value={userPassword}
                     />
+                    <TouchableOpacity onPress={() => navigation.navigate('RecoveryRequisitionScreen')}>
+                        <Text style={{ color: COLORS.secundary, marginTop: 10, textAlign: 'right' }}>Esqueci minha senha</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Botão de Entrar */}
-                <View style={{ marginTop: 30 }}>
-                    <RoundedButton
-                        text="Entrar"
-                        onPress={testOS}
-                    />
+                <View style={{ marginTop: 40 }}>
+                    <RoundedButton text="Login" onPress={() => login()} />
                 </View>
 
                 {/* Texto de Registro */}
                 <View style={styles.frmRegistre}>
                     <Text>Crie sua conta!</Text>
-
                     <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
                         <Text style={styles.txtRegistre}> Registre-se </Text>
                     </TouchableOpacity>
-
-                    
                 </View>
             </View>
         </View>
     );
 };
 
+//
 
 // Folha de estilo
 const styles = StyleSheet.create({
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.bgBlack,
         alignItems: 'center',
         justifyContent: 'center',
+
     },
 
     logoContainer: {
@@ -147,22 +148,10 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
     },
-    frmInput: {
-        flexDirection: 'row',
-        marginTop: 30,
-        borderBottomColor: '#CCC'
-    },
 
-    frmIco: {
-        width: 25,
-        height: 25,
-        marginTop: 10,
-    },
-    txtInput: {
-        flex: 1,
-        borderBottomWidth: 2,
-        marginLeft: 15,
-    },
+
+
+
     frmRegistre: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -178,6 +167,8 @@ const styles = StyleSheet.create({
         color: COLORS.secundary,
     },
 });
+
+
 
 
 //export default HomeScreen;
