@@ -9,7 +9,7 @@ import { CustomTextInput } from "../../Components/CustomTextInput";
 //navegação
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParameList } from '../../../../App';
+import { RootStackParameList } from '../../../../Aula03_App';
 
 // View
 import useViewModel from './ViewModel';

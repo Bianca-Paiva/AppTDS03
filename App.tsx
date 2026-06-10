@@ -1,56 +1,103 @@
-import *as React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { HomeScreen } from './src/Presentation/views/home/Home';
-import { RegisterScreen } from './src/Presentation/views/register/Register';
-import { RecoveryRequisitionScreen } from './src/Presentation/views/recoveryRequisition/RecoveryRequisition';
-import { RecoveryPasswordScreen } from './src/Presentation/views/recoveryPassword/RecoveryPassword'
+import React, { useState, useEffect, use } from "react";
+import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
+import * as Location from 'expo-location';
 
-export type RootStackParameList = {
-  HomeScreen: undefined,
-  RegisterScreen: undefined,
-  RecoveryRequisitionScreen: undefined,
-  RecoveryPasswordScreen: undefined,
+export default function App() {
+    const [location, setLocation] = useState<Location.LocationObject | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        async function buscaLocalizacao() {
+            try {
+                // Pede permissão ao usuário
+                let { status } = await Location.requestForegroundPermissionsAsync();
+
+                if (status !== 'granted') {
+                    setErrorMsg('Permissão para acessar a localização foi negada!');
+                    setLoading(false);
+                    return;
+                }
+
+                // Busca a ultima posição salva (é instantâneo e evita load eterno do emulador)
+                let currentLocation = await Location.getLastKnownPositionAsync(({}));
+
+                if (!currentLocation) {
+                    currentLocation = await Location.getCurrentPositionAsync({
+                        accuracy: Location.Accuracy.Lowest,
+
+                    });
+                }
+
+                setLocation(currentLocation);
+            } catch (error) {
+                setErrorMsg('Erro ao tentar buscar a localização!')
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        buscaLocalizacao();
+    }, []);
+
+    // Mostra um aviso se der erro ou permissão negado
+    if (errorMsg) {
+        return (
+            <View style={style.container}>
+                <Text style={style.errorMsg}>{errorMsg}</Text>
+            </View>
+        );
+    }
+
+    // Mostra o loading enquanto tenta achar as coordenadas
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <ActivityIndicator size='large' color='#0000ff' />
+                <Text style={style.text}>Buscando satélites...</Text>
+            </View>
+        );
+    }
+
+    // Deu certo! Mostra as coordenadas na tela
+    return (
+        <View style={style.container}>
+            <Text style={style.title}>Sua localização</Text>
+            <View style={style.card}>
+                <Text style={style.text}>
+                    <Text style={style.bold}>Latitude:</Text> {location?.coords.latitude}
+                </Text>
+
+                <Text style={style.text}>
+                    <Text style={style.bold}>Longitude:</Text> {location?.coords.longitude}
+                </Text>
+
+                <Text style={style.text}>
+                    <Text style={style.bold}>Precisão:</Text> {location?.coords.accuracy?.toFixed(2)} metros
+                </Text>
+            </View>
+        </View>
+    );
 }
 
-const Stack = createNativeStackNavigator();
+const styles = StyleSheet.create({
+    container: {
 
-const App = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    },
 
-        <Stack.Screen
-          name='HomeScreen'
-          component={HomeScreen} />
+    title: {
 
-        <Stack.Screen
-          name="RegisterScreen"
-          component={RegisterScreen}
-          options={{
-            headerShown: true,
-            title: 'Novo usuário',
-          }} />
+    },
 
-        <Stack.Screen
-          name="RecoveryRequisitionScreen"
-          component={RecoveryRequisitionScreen}
-          options={{
-            headerShown: true,
-            title: 'Recuperar senha',
-          }} />
+    card: {
 
-        <Stack.Screen
-          name="RecoveryPasswordScreen"
-          component={RecoveryPasswordScreen}
-          options={{
-            headerShown: true,
-            title: 'Redefinir senha',
-          }} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  )
-}
+    },
 
+    text: {
 
-export default App;
+    },
+
+    bold: {
+        
+    },
+});

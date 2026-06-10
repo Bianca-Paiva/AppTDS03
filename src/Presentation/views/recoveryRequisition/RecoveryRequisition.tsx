@@ -9,7 +9,7 @@ import { RoundedButton } from "../../Components/RoundedButton";
 //navegação
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParameList } from '../../../../App';
+import { RootStackParameList } from '../../../../Aula03_App';
 
 import useViewModel from './ViewModel'
 
