@@ -1,6 +1,6 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 
 export default function App() {
     const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -20,16 +20,16 @@ export default function App() {
                 }
 
                 // Busca a ultima posição salva (é instantâneo e evita load eterno do emulador)
-                let currentLocation = await Location.getLastKnownPositionAsync(({}));
+                let currentLocation = await Location.getLastKnownPositionAsync();
 
                 if (!currentLocation) {
                     currentLocation = await Location.getCurrentPositionAsync({
-                        accuracy: Location.Accuracy.Lowest,
-
+                        accuracy: Location.Accuracy.Highest
                     });
                 }
 
                 setLocation(currentLocation);
+
             } catch (error) {
                 setErrorMsg('Erro ao tentar buscar a localização!')
             } finally {
@@ -38,13 +38,13 @@ export default function App() {
         }
 
         buscaLocalizacao();
-    }, []);
+    });
 
     // Mostra um aviso se der erro ou permissão negado
     if (errorMsg) {
         return (
-            <View style={style.container}>
-                <Text style={style.errorMsg}>{errorMsg}</Text>
+            <View style={styles.container}>
+                <Text style={styles.errorText}>{errorMsg}</Text>
             </View>
         );
     }
@@ -54,26 +54,26 @@ export default function App() {
         return (
             <View style={styles.container}>
                 <ActivityIndicator size='large' color='#0000ff' />
-                <Text style={style.text}>Buscando satélites...</Text>
+                <Text style={styles.text}>Buscando satélites...</Text>
             </View>
         );
     }
 
     // Deu certo! Mostra as coordenadas na tela
     return (
-        <View style={style.container}>
-            <Text style={style.title}>Sua localização</Text>
-            <View style={style.card}>
-                <Text style={style.text}>
-                    <Text style={style.bold}>Latitude:</Text> {location?.coords.latitude}
+        <View style={styles.container}>
+            <Text style={styles.title}>Sua localização</Text>
+            <View style={styles.card}>
+                <Text style={styles.text}>
+                    <Text style={styles.bold}>Latitude:</Text> {location?.coords.latitude}
                 </Text>
 
-                <Text style={style.text}>
-                    <Text style={style.bold}>Longitude:</Text> {location?.coords.longitude}
+                <Text style={styles.text}>
+                    <Text style={styles.bold}>Longitude:</Text> {location?.coords.longitude}
                 </Text>
 
-                <Text style={style.text}>
-                    <Text style={style.bold}>Precisão:</Text> {location?.coords.accuracy?.toFixed(2)} metros
+                <Text style={styles.text}>
+                    <Text style={styles.bold}>Precisão:</Text> {location?.coords.accuracy?.toFixed(2)} metros
                 </Text>
             </View>
         </View>
@@ -97,7 +97,11 @@ const styles = StyleSheet.create({
 
     },
 
+    errorText: {
+
+    },
+
     bold: {
-        
+
     },
 });
