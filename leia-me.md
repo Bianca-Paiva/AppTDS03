@@ -26,3 +26,6 @@ npx expo start -c
 
 # Pacotes para GPS
 npx expo install expo-location
+
+## Instalando dependencia de Camera
+npx expo install expo-camera

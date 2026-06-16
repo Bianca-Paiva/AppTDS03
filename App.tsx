@@ -1,107 +1,161 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
-import * as Location from "expo-location";
+import React, { useState, useRef } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Button, Image, Dimensions } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
+
+// Pagamos a largura e altura da tela do dispositivo SmarthPhone, para garantir o tamanho da foto
+const { width, height } = Dimensions.get('window');
 
 export default function App() {
-    const [location, setLocation] = useState<Location.LocationObject | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true)
+    const [permission, requestPermission] = useCameraPermissions();
+    const [capituredImage, setCapturedImage] = useState<string | null>(null);
+    const cameraRef = useRef<any>(null);
 
-    useEffect(() => {
-        async function buscaLocalizacao() {
-            try {
-                // Pede permissão ao usuário
-                let { status } = await Location.requestForegroundPermissionsAsync();
+    if (!permission) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.textLight}>
+                    Carregando permissões...
+                </Text>
+            </View>
+        );
+    }
 
-                if (status !== 'granted') {
-                    setErrorMsg('Permissão para acessar a localização foi negada!');
-                    setLoading(false);
-                    return;
-                }
+    if (!permission.granted) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.textPermissao}>
+                    Precisamos da sua permissão para mostrar a câmera!
+                </Text>
 
-                // Busca a ultima posição salva (é instantâneo e evita load eterno do emulador)
-                let currentLocation = await Location.getLastKnownPositionAsync();
+                <Button
+                    onPress={requestPermission}
+                    title="Conceder Permissão"
+                />
+            </View>
+        );
+    }
 
-                if (!currentLocation) {
-                    currentLocation = await Location.getCurrentPositionAsync({
-                        accuracy: Location.Accuracy.Highest
-                    });
-                }
+    const takePicture = async () => {
+        if (cameraRef.current) {
+            // skipProcessing garante que o Android processe a imagem antes de entregar a URI
+            const option = { quality: 0.8, skipProcessing: false };
 
-                setLocation(currentLocation);
+            const photo = await cameraRef.current.takePictureAsync(option);
 
-            } catch (error) {
-                setErrorMsg('Erro ao tentar buscar a localização!')
-            } finally {
-                setLoading(false);
+            if (photo && photo.uri) {
+                // Isso vai aparecer no terminal do VsCode
+                console.log('Foto tiranda com sucesso! Caminho:', photo.uri);
+                setCapturedImage(photo.uri);
             }
         }
+    };
 
-        buscaLocalizacao();
-    });
-
-    // Mostra um aviso se der erro ou permissão negado
-    if (errorMsg) {
-        return (
-            <View style={styles.container}>
-                <Text style={styles.errorText}>{errorMsg}</Text>
-            </View>
-        );
-    }
-
-    // Mostra o loading enquanto tenta achar as coordenadas
-    if (loading) {
-        return (
-            <View style={styles.container}>
-                <ActivityIndicator size='large' color='#0000ff' />
-                <Text style={styles.text}>Buscando satélites...</Text>
-            </View>
-        );
-    }
-
-    // Deu certo! Mostra as coordenadas na tela
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Sua localização</Text>
-            <View style={styles.card}>
-                <Text style={styles.text}>
-                    <Text style={styles.bold}>Latitude:</Text> {location?.coords.latitude}
-                </Text>
+            {capituredImage ? (
+                // tela de preview da foto 
+                <View style={styles.previewContainer}>
+                    <Image
+                        source={{ uri: capituredImage }}
+                        style={styles.preview}
+                        resizeMode="cover" // Garante que a foto preencha o espaço total do SmartPhone
+                    />
 
-                <Text style={styles.text}>
-                    <Text style={styles.bold}>Longitude:</Text> {location?.coords.longitude}
-                </Text>
+                    <View style={styles.previewButtons}>
+                        <Button
+                            onPress={() => setCapturedImage(null)}
+                            title="Tirar outra foto!"
+                        />
+                    </View>
+                </View>
+            ) : (
+                // Tela da Câmera
+                <View style={styles.cameraContainer}>
+                    <CameraView style={styles.camera} facing="back" ref={cameraRef} />
 
-                <Text style={styles.text}>
-                    <Text style={styles.bold}>Precisão:</Text> {location?.coords.accuracy?.toFixed(2)} metros
-                </Text>
-            </View>
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={takePicture}
+                        >
+                            <Text style={styles.textBtn}> Tirar Foto</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )
+            }
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-
+        flex: 1,
+        backgroundColor: '#000',
+        justifyContent: 'center',
     },
 
-    title: {
-
+    textPermissao: {
+        color: '#fff',
+        textAlign: 'center',
+        marginBottom: 20,
     },
 
-    card: {
-
+    cameraContainer: {
+        flex: 1,
+        width: '100%',
+        position: 'relative',
     },
 
-    text: {
-
+    camera: {
+        flex: 1,
+        width: '100%',
     },
 
-    errorText: {
-
+    buttonContainer: {
+        position: 'absolute',
+        bottom: 40,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        backgroundColor: 'transparent'
     },
 
-    bold: {
+    button: {
+        backgroundColor: '#fff',
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        elevation: 5,
+        borderRadius: 30,
+    },
 
+    textBtn: {
+        fontSize: 16,
+        color: '#000',
+        fontWeight: 'bold',
+    },
+
+    textLight: {
+        color: '#fff',
+        textAlign: 'center',
+    },
+
+    previewContainer: {
+        flex: 1,
+        justifyContent:'center',
+        alignItems:'center',
+        width: '100%',
+        backgroundColor: '#000'
+    },
+
+    preview: {
+        width: width * 0.85,
+        height: height * 0.70,
+        borderRadius: 12,
+    },
+
+    previewButtons: {
+        width: '80%',
+        marginTop: 20,
     },
 });
