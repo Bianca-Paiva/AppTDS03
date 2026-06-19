@@ -1,13 +1,17 @@
 import React, { useState, useRef } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Button, Image, Dimensions } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Button, Image, Dimensions, ActivityIndicator, Alert } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 
 // Pagamos a largura e altura da tela do dispositivo SmarthPhone, para garantir o tamanho da foto
 const { width, height } = Dimensions.get('window');
 
+// Variável para controlar o ambiente (true = simula no front / false = envia pro servidor real)
+const isTestMode = true;
+
 export default function App() {
     const [permission, requestPermission] = useCameraPermissions();
-    const [capituredImage, setCapturedImage] = useState<string | null>(null);
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const [isUploading, setUploading] = useState(false);
     const cameraRef = useRef<any>(null);
 
     if (!permission) {
@@ -50,28 +54,98 @@ export default function App() {
         }
     };
 
+    const uploadImage = async () => {
+
+        if (!capturedImage) return;
+
+        setUploading(true);
+
+        try {
+            if (isTestMode) {
+                /**
+                    * MODO DE TESTE (APENAS FRONT-END)
+                */
+                console.log('Modo de teste ativo: Simulando o Upload...');
+
+                // Simula o tempo de uma requisição de rede "2 segundos"
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                console.log('Upload simulado com sucesso! A imagem está pronta para ser usada no app.');
+                Alert.alert('Sucesso', 'Sua foto de perfil foi atualizada (Modo Teste)!');
+
+                // A partir daqui pode ser utilizada e atualizada a foto na UI, no Context ou Redux
+
+            } else {
+                /**
+                    * MODO PRODUÇÃO (COMUNICAÇÃO COM BACK-END)
+                */
+
+                // 1. Resolve o erro do "Unsupported FormDataPart" transformando o arquivo local em um Blob padrão
+                const localImageResponse = await fetch(capturedImage);
+                const blob = await localImageResponse.blob();
+
+                // 2. Cria o FormData e anexa o blob (usando o padrão web que as versões novas do Expo exigem)
+                const formData = new FormData();
+                formData.append('profilePicture', blob, 'profile.jpg');
+
+                const UPLOAD_URL = 'https://sua-api/upload-endpoint'; // Substitua quando TIVER A 'API'
+
+                const response = await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    // DICA: Não coloque 'Content-type : 'mulpipart/form-data' aqui nos headers
+                    // O fetch cuida de gerar os 'boundaries' corretamente se você não forçar manualmente.
+                    headers: {
+                        // 'Authorization': 'Bearer SEU_TOKEN_USUARIO' --- Para usuários autenticados
+                    },
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    console.log('Upload concluído no servidor: ', data);
+                    Alert.alert('Sucesso', 'Sua foto de perfil foi atualizada! - (BackEnd)');
+                } else {
+                    Alert.alert('ERRO', 'Não foi possível salvar a imagem no servidor');
+                }
+            }
+
+        } catch (error) {
+            console.error('Erro no upload: ', error);
+            Alert.alert('ERRO', 'Falha na conexão com o servidor.');
+        } finally {
+            setUploading(false); // Esconde o loading, independente de dar erro ou sucesso 
+        }
+    };
+
     return (
         <View style={styles.container}>
-            {capituredImage ? (
+            {capturedImage ? (
                 // tela de preview da foto 
                 <View style={styles.previewContainer}>
                     <Image
-                        source={{ uri: capituredImage }}
+                        source={{ uri: capturedImage }}
                         style={styles.preview}
                         resizeMode="cover" // Garante que a foto preencha o espaço total do SmartPhone
                     />
 
                     <View style={styles.previewButtons}>
-                        <Button
-                            onPress={() => setCapturedImage(null)}
-                            title="Tirar outra foto!"
-                        />
+                        { isUploading ? (
+                            <ActivityIndicator size='large' color='#00ff00' />
+                        ) : (
+                            <>
+                                <Button title="Usar como foto de Perfil" onPress={uploadImage} color='#28a745'/>
+                                <View style={{ margin: 10 }}>
+                                    <Button title="Tirar outra foto" onPress={() => setCapturedImage(null)} color='#dc3545'/>
+                                </View>
+                            </>
+                        )}
                     </View>
                 </View>
             ) : (
                 // Tela da Câmera
                 <View style={styles.cameraContainer}>
-                    <CameraView style={styles.camera} facing="back" ref={cameraRef} />
+                    <CameraView style={styles.camera} facing="front" ref={cameraRef} />
 
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
@@ -142,8 +216,8 @@ const styles = StyleSheet.create({
 
     previewContainer: {
         flex: 1,
-        justifyContent:'center',
-        alignItems:'center',
+        justifyContent: 'center',
+        alignItems: 'center',
         width: '100%',
         backgroundColor: '#000'
     },
