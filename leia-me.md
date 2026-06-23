@@ -29,3 +29,6 @@ npx expo install expo-location
 
 ## Instalando dependencia de Camera
 npx expo install expo-camera
+
+## Acesso a pasta de imagens
+npx expo install expo-image-picker
