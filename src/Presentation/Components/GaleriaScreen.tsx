@@ -63,8 +63,8 @@ export default function GaleriaScreen() {
 
             {/* Botão interativo para abri as fotos */}
             <TouchableOpacity
-                onPress={ abrirGaleria }
-                style={styles.btnGaleria}    
+                onPress={abrirGaleria}
+                style={styles.btnGaleria}
             >
                 <Text style={styles.textBtn}>Acessar Pasta de Imagens</Text>
             </TouchableOpacity>
@@ -72,11 +72,11 @@ export default function GaleriaScreen() {
             {/* Botão para limpar a seleção atual */}
             {selectedImage && (
                 <TouchableOpacity
-                onPress={ () => selectedImage(null) }
-                style={ styles.btnLimpar, { backgroundColor: '#f00', marginTop: 12 }}    
-            >
-                <Text style={styles.textBtn}>Limpar Imagem</Text>
-            </TouchableOpacity>
+                    onPress={() => selectedImage(null)}
+                    style={styles.btnLimpar, { backgroundColor: '#f00', marginTop: 12 }}
+                >
+                    <Text style={styles.textBtn}>Limpar Imagem</Text>
+                </TouchableOpacity>
             )}
         </View>
     );
@@ -84,38 +84,83 @@ export default function GaleriaScreen() {
 
 const styles = StyleSheet.create({
     container: {
-
+        flex: 1,
+        backgroundColor: '#121212',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
     },
 
     title: {
-
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#fff',
+        marginBottom: 4,
+        textAlign: 'center',
     },
-
+    
     subTitle: {
-
+        fontSize: 14,
+        color: '#888',
+        marginBottom: 30,
+        textAlign: 'center',
     },
 
     previewBox: {
-
+        width: width * 0.85,
+        height: height * 0.45,
+        backgroundColor: '#1e1e1e',
+        borderRadius: 15,
+        borderWidth: 2,
+        borderColor: '#333',
+        borderStyle: 'dashed',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        marginBottom: 30,
     },
 
     image: {
-
+        width: '100%',
+        height: '100%',
     },
 
     textPlaceholder: {
-        
+        fontSize: 12,
+        color: '#666',
+        textAlign: 'center',
+        paddingHorizontal: 20,
     },
 
     btnGaleria: {
-
+        backgroundColor: '#e67e22',
+        width: width * 0.85,
+        paddingVertical: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
 
-    textBtn:{
-
+    textBtn: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 
     btnLimpar: {
-
+        backgroundColor: '#e67e22',
+        width: width * 0.85,
+        paddingVertical: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     }
 }) 
